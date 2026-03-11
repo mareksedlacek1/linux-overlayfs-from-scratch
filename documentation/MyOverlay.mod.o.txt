@@ -1,0 +1,3 @@
+MyOverlay.mod.o
+---------------
+This is the object file generated from MyOverlay.mod.c. It contains the compiled metadata for your module.

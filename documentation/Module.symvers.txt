@@ -1,0 +1,3 @@
+Module.symvers
+--------------
+This file lists all exported symbols from your module and any symbols your module imports from other modules. Useful for symbol versioning and linking multiple modules.

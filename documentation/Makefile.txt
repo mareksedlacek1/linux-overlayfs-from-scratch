@@ -1,0 +1,3 @@
+Makefile
+--------
+This file contains build instructions for the kernel module. It tells 'make' how to compile your module using the kernel build system. It ensures compatibility with the running kernel by using its build settings.
