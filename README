@@ -67,6 +67,28 @@ sudo rmmod MyOverlay.ko
 
 ---
 
+### Test Mounting the Filesystem
+
+After loading the module, you can test mounting your minimal overlay filesystem:
+
+```sh
+# 1. Create a mount point (if it doesn't exist)
+sudo mkdir -p /mnt/overlaytest
+
+# 2. Mount your filesystem
+sudo mount -t overlayfs none /mnt/overlaytest
+
+# 3. Check kernel messages for your printk output
+dmesg | tail -n 10
+
+# 4. Unmount when done
+sudo umount /mnt/overlaytest
+```
+
+If you see your "mounted function called" message in dmesg, your minimal overlay filesystem is working!
+
+---
+
 ## Different Types of Files
 
 - `MyOverlay.c` — Source code
@@ -116,3 +138,5 @@ You may see a warning like:
     You are using:           gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
 
 Try to match the compiler version with the kernel version for maximum compatibility.
+
+
