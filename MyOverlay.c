@@ -19,6 +19,7 @@ static const struct super_operations my_super_ops = {
 };
 
 static int my_fill_super(struct super_block *sb, void *data, int silent) { 
+    struct overlay_paths *paths = (struct overlay_paths *)data; // mount_nodev passes the pointer paths as the data argument in my_super_fill
     struct inode *inode = new_inode(sb);
 
     inode->i_ino = 1; // Set inode number (1 is standard for root)
@@ -29,10 +30,10 @@ static int my_fill_super(struct super_block *sb, void *data, int silent) {
     sb->s_op = &my_super_ops; // Required: superblock operations
     sb->s_root = d_make_root(inode); // Required: root dentry
     sb->s_maxbytes = MAX_LFS_FILESIZE; // maximum size allowed by the kernel and architecture
+    sb->s_fs_info = paths; // Store the parsed paths
     return 0; 
 }
 // parsing the paths
-
 struct overlay_paths {
     char upper[256];
     char lower[256];
@@ -44,10 +45,10 @@ static struct overlay_paths *parse_paths(const char *data) {
     if (!paths) { return NULL;}
 
     const char *upper = strstr(data, "upper="); // strstr returns pointer of first occurrence of string in an other string
-    const char *lower = strstr(data,"lower=")
+    const char *lower = strstr(data,"lower=");
     if (upper) {
-        for (int i = 6 ; strlen(upper), i++) {
-            if (*upper[i] == ",") {
+        for (int i = 6 ; strlen(upper) ; i++) {
+            if (upper[i] == ',') {
                 paths->upper[i - 6] = '\0'; 
                 break;
 
@@ -79,9 +80,9 @@ it calls a function to set up the superblock and root inode (NULL is passed no c
 In are case it's useful because are goals is not to manage the storage device, instead we want to merge existing directories from other filesystems.
 */
 static struct dentry *my_mount_function(struct file_system_type *fs_type, int flags, const char *dev_name, void*data) {
-    printk(KERN_INFO "mounted function called with options:%s",(const char*)data,"\n"); // kernel log level
+    printk(KERN_INFO "mounted function called with options:%s",(const char*)data); // kernel log level
     struct overlay_paths *paths = parse_paths((const char*)data);
-    return mount_nodev(fs_type, flags, data, my_fill_super); // GOOD: kernel calls function safely
+    return mount_nodev(fs_type, flags, paths, my_fill_super); // GOOD: kernel calls function safely
 }
 
 static void my_kill_sb(struct super_block *sb) {
