@@ -31,6 +31,47 @@ static int my_fill_super(struct super_block *sb, void *data, int silent) {
     sb->s_maxbytes = MAX_LFS_FILESIZE; // maximum size allowed by the kernel and architecture
     return 0; 
 }
+// parsing the paths
+
+struct overlay_paths {
+    char upper[256];
+    char lower[256];
+
+};
+// parse_paths is a function that returns a pointer that points on overlay_paths struct
+static struct overlay_paths *parse_paths(const char *data) {
+    struct overlay_paths *paths = kmalloc(sizeof(*paths), GFP_KERNEL); // if sys out of memory or can not allocate the requested size, kmalloc returns NULL
+    if (!paths) { return NULL;}
+
+    const char *upper = strstr(data, "upper="); // strstr returns pointer of first occurrence of string in an other string
+    const char *lower = strstr(data,"lower=")
+    if (upper) {
+        for (int i = 6 ; strlen(upper), i++) {
+            if (*upper[i] == ",") {
+                paths->upper[i - 6] = '\0'; 
+                break;
+
+            }
+            paths->upper[i - 6] = upper[i];
+        }
+    } else {
+        paths->upper[0] = '\0';
+    }
+
+    if (lower) {
+        for (int i = 6; lower[i] && lower[i] != ',' && (i - 6) < 255; i++) {
+            if (lower[i] == ',') {
+                paths->lower[i - 6] = '\0';
+                break;
+            }
+            paths->lower[i - 6] = lower[i];
+        }
+    } else {
+        paths->lower[0] = '\0';
+    }
+
+    return paths;
+}
 
 /* mount_nodev is kernel helper function for mounting filesystems that do not use a physical device
 it creates a root dentry (the root director entry for my filesystem)
@@ -38,7 +79,8 @@ it calls a function to set up the superblock and root inode (NULL is passed no c
 In are case it's useful because are goals is not to manage the storage device, instead we want to merge existing directories from other filesystems.
 */
 static struct dentry *my_mount_function(struct file_system_type *fs_type, int flags, const char *dev_name, void*data) {
-    printk(KERN_INFO "mounted function called \n"); // kernel log level
+    printk(KERN_INFO "mounted function called with options:%s",(const char*)data,"\n"); // kernel log level
+    struct overlay_paths *paths = parse_paths((const char*)data);
     return mount_nodev(fs_type, flags, data, my_fill_super); // GOOD: kernel calls function safely
 }
 

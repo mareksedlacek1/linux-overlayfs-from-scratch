@@ -5,6 +5,24 @@
 
 Most developers use Docker and containers as black boxes—they run containers, mount volumes, and move files in and out, but rarely ask: **How does Docker actually make files and layers work under the hood?**
 
+---
+### Overlay Filesystem Directory Roles (for my future reference)
+
+**Mount Point:**
+This is the directory where my overlay filesystem appears. It’s just a folder (e.g., `/mnt/overlaytest`) where the merged view of my layers is exposed. The kernel manages this location; my module does not need to know its path.
+
+**Upper Directory:**
+This is a real folder on an existing filesystem. It acts as the writable layer—any changes made in the overlay are stored here. My module uses this directory to record modifications.
+
+**Lower Directory:**
+This is another real folder, usually read-only or read-mostly. It acts as the base layer, providing the original files and directories. My module uses this directory as the foundation for the overlay.
+
+**How It Works:**
+When I mount my overlay filesystem, I specify the upper and lower directories as mount options. My module merges these two directories and presents the combined view at the mount point. The mount point itself is not managed by my module; it’s just where the merged view is exposed.
+
+**Summary:**
+- The mount point is where the overlay lives (I see the merged view).
+- Upper and lower are real directories managed by my module (used for merging).
 This project began with my curiosity about what really happens inside the Linux kernel when Docker (and similar tools like Kubernetes) create, merge, and manage filesystems. Modern containers rely on advanced filesystem tricks—like overlay filesystems—to present a unified view of multiple layers (read-only images, writable containers) as a single directory.
 
 I wanted to move beyond just using containers and start building the core technology that powers them. By implementing a stackable filesystem driver (like OverlayFS), I’m learning how the kernel merges layers, intercepts file operations, and provides the magic behind container storage.
